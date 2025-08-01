@@ -5,6 +5,7 @@ from communication import SmsSender, MailSender
 from booking_scheduler import BookingScheduler
 from datetime import datetime,timedelta
 
+from pytest_mock import MockFixture
 from test_communication import TestableSmsSender, TestableMailSender
 
 NOT_ON_THE_HOUR = datetime.strptime("2021/03/26 09:05", "%Y/%m/%d %H:%M")
@@ -21,6 +22,20 @@ class TestableBookingScheduler(BookingScheduler):
 
     def get_now(self):
         return datetime.strptime(self._date_time,"%Y/%m/%d %H:%M")
+
+
+@pytest.fixture
+def customer(mocker:MockFixture):
+    customer = mocker.Mock()
+    customer.get_email.return_value = None
+    return customer
+
+@pytest.fixture
+def customer_with_email(mocker:MockFixture):
+    customer = mocker.Mock()
+    customer.get_email.return_value = "test@test.com"
+    return customer
+
 
 #
 # class SundayBookingScheduler(BookingScheduler):
