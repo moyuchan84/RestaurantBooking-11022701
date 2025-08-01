@@ -6,10 +6,10 @@ from communication import MailSender
 
 
 class BookingScheduler:
-    def __init__(self, capacity_per_hour):
+    def __init__(self, capacity_per_hour,sms_sender:SmsSender=SmsSender()):
         self.capacity_per_hour = capacity_per_hour
         self.schedules = []
-        self.sms_sender = SmsSender()
+        self.sms_sender = sms_sender
         self.mail_sender = MailSender()
 
     def add_schedule(self, schedule: Schedule):
