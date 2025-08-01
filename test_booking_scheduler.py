@@ -56,8 +56,8 @@ def test_시간대별_인원제한이_있다_같은_시간대가_다르면_Capac
     assert booking_scheduler.has_schedule(schedule)
     assert booking_scheduler.has_schedule(new_schedule)
 
-def test_예약완료시_SMS는_무조건_발송(booking_scheduler):
-    testable_sms_sender = TestableSmsSender()
+def test_예약완료시_SMS는_무조건_발송(booking_scheduler_with_sms_mock):
+    booking_scheduler, testable_sms_sender = booking_scheduler_with_sms_mock
     booking_scheduler.set_sms_sender(testable_sms_sender)
     schedule = Schedule(ON_THE_HOUR, UNDER_CAPACITY, CUSTOMER)
     # act
