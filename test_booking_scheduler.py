@@ -36,38 +36,22 @@ def customer_with_email(mocker:MockFixture):
     customer.get_email.return_value = "test@test.com"
     return customer
 
-
-#
-# class SundayBookingScheduler(BookingScheduler):
-#     def __init__(self,capacity_per_hour):
-#         super().__init__(capacity_per_hour)
-#
-#     def get_now(self):
-#         return datetime.strptime("2021/03/28 17:00", "%Y/%m/%d %H:%M")
-#
-# class MondayBookingScheduler(BookingScheduler):
-#     def __init__(self,capacity_per_hour):
-#         super().__init__(capacity_per_hour)
-#
-#     def get_now(self):
-#         return datetime.strptime("2024/06/03 17:00", "%Y/%m/%d %H:%M")
-
 @pytest.fixture
 def booking_scheduler():
     return BookingScheduler(CAPACITY_PER_HOUR)
 
 @pytest.fixture
-def booking_scheduler_with_sms_mock():
+def booking_scheduler_with_sms_mock(mocker:MockFixture):
     booking_scheduler = BookingScheduler(CAPACITY_PER_HOUR)
-    testable_sms_sender =TestableSmsSender()
+    testable_sms_sender = mocker.Mock()
     booking_scheduler.set_sms_sender(testable_sms_sender)
     return booking_scheduler , testable_sms_sender
 
 @pytest.fixture
-def booking_scheduler_with_mail_mock():
+def booking_scheduler_with_mail_mock(mocker:MockFixture):
     booking_scheduler = BookingScheduler(CAPACITY_PER_HOUR)
-    testable_mail_sender =TestableMailSender()
-    booking_scheduler .set_mail_sender(testable_mail_sender)
+    testable_mail_sender = mocker.Mock()
+    booking_scheduler.set_mail_sender(testable_mail_sender)
     return booking_scheduler , testable_mail_sender
 
 def test_예약은_정시에만_가능하다_정시가_아닌경우_예약불가(booking_scheduler,customer):
@@ -102,13 +86,12 @@ def test_시간대별_인원제한이_있다_같은_시간대가_다르면_Capac
     assert booking_scheduler.has_schedule(new_schedule)
 
 def test_예약완료시_SMS는_무조건_발송(booking_scheduler_with_sms_mock,customer):
-    booking_scheduler, testable_sms_sender = booking_scheduler_with_sms_mock
-    booking_scheduler.set_sms_sender(testable_sms_sender)
+    booking_scheduler, sms_mock = booking_scheduler_with_sms_mock
     schedule = Schedule(ON_THE_HOUR, UNDER_CAPACITY, customer)
     # act
     booking_scheduler.add_schedule(schedule)
     # assert
-    assert testable_sms_sender.send_called
+    sms_mock.send.assert_called()
 
 def test_이메일이_없는_경우에는_이메일_미발송(booking_scheduler_with_mail_mock,customer):
     booking_scheduler, mail_mock = booking_scheduler_with_mail_mock
@@ -116,7 +99,7 @@ def test_이메일이_없는_경우에는_이메일_미발송(booking_scheduler_
     # act
     booking_scheduler.add_schedule(schedule)
     # assert
-    assert mail_mock.send_mail_count == 0
+    mail_mock.send_mail.assert_not_called()
 
 def test_이메일이_있는_경우에는_이메일_발송(booking_scheduler_with_mail_mock,customer_with_email):
     booking_scheduler, mail_mock = booking_scheduler_with_mail_mock
@@ -124,7 +107,7 @@ def test_이메일이_있는_경우에는_이메일_발송(booking_scheduler_wit
     # act
     booking_scheduler.add_schedule(schedule)
     # assert
-    assert mail_mock.send_mail_count == 1
+    mail_mock.send_mail.assert_called_once()
 
 def test_현재날짜가_일요일인_경우_예약불가_예외처리(customer):
     booking_scheduler = TestableBookingScheduler(CAPACITY_PER_HOUR,"2021/03/28 17:00")
