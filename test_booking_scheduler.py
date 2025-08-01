@@ -112,4 +112,9 @@ def test_현재날짜가_일요일인_경우_예약불가_예외처리():
         booking_scheduler.add_schedule(schedule)
 
 def test_현재날짜가_일요일이_아닌경우_예약가능():
-    pass
+    booking_scheduler = MondayBookingScheduler(CAPACITY_PER_HOUR)
+    schedule = Schedule(ON_THE_HOUR, UNDER_CAPACITY, CUSTOMER)
+    # act
+    booking_scheduler.add_schedule(schedule)
+    # assert
+    assert booking_scheduler.has_schedule(schedule)
